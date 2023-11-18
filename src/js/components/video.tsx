@@ -109,7 +109,6 @@ export default function Video({observation, annotations}: Props) {
         className="hidden"
       ></video>
       <canvas
-        className="pt-m"
         ref={canvasRef}
         width={CANVAS_WIDTH}
         height={CANVAS_HEIGHT}

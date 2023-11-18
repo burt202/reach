@@ -4,6 +4,7 @@ import {useParams} from "react-router-dom"
 
 import observations from "../../data/observations"
 import Annotations from "../components/annotations"
+import Chat from "../components/chat"
 import Layout from "../components/layout"
 import Video from "../components/video"
 import requester from "../requester"
@@ -67,15 +68,18 @@ function ObservationInner({observation}: ObservationInnerProps) {
   }
 
   return (
-    <>
-      <Video observation={observation} annotations={annotations} />
-      {annotationsFetchError ? (
-        <p className="font-bold text-red-600">
-          Failed to fetch annotations data
-        </p>
-      ) : (
-        <Annotations observation={observation} annotations={annotations} />
-      )}
-    </>
+    <div className="flex pt-m">
+      <div>
+        <Video observation={observation} annotations={annotations} />
+        {annotationsFetchError ? (
+          <p className="font-bold text-red-600">
+            Failed to fetch annotations data
+          </p>
+        ) : (
+          <Annotations observation={observation} annotations={annotations} />
+        )}
+      </div>
+      <Chat observation={observation} />
+    </div>
   )
 }
