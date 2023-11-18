@@ -1,9 +1,18 @@
 import * as React from "react"
+import {HashRouter, Routes, Route} from "react-router-dom"
+
+import Home from "./pages/home"
+import NotFound from "./pages/not-found"
+import Observation from "./pages/observation"
 
 export default function App() {
   return (
-    <div>
-      <h1 className="m-0">Hello world</h1>
-    </div>
+    <HashRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/observation/:observationId" element={<Observation />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </HashRouter>
   )
 }
