@@ -1,4 +1,6 @@
-export default [
+import {Observation} from "../js/types"
+
+const observations: Array<Observation> = [
   {
     id: "o1",
     name: "Observation 1",
@@ -25,3 +27,5 @@ export default [
     annotationsUrl: "https://burt202.github.io/reach/o3-annotations.json",
   },
 ]
+
+export default observations
