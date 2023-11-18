@@ -9,6 +9,7 @@ interface RequesterOptions {
   url: string
 }
 
+// a basic GET requester with response validation via zod
 export default async function requester<T>({
   schema,
   url,

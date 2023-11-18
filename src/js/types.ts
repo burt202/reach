@@ -8,6 +8,8 @@ export interface Observation {
   annotationsUrl: string
 }
 
+// use zod to build runtime schemas we can use for validation which we can
+// also use to infer compile time TS types
 const rectCoordsSchema = z.tuple([
   z.number(),
   z.number(),
