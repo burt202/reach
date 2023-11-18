@@ -15,6 +15,7 @@ export default function Video({observation, annotations}: Props) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
+  const [scrubberValue, setScrubberValue] = useState(0)
   const [frameMetadata, setFrameMetadata] = useState({})
 
   useEffect(() => {
@@ -26,13 +27,24 @@ export default function Video({observation, annotations}: Props) {
           return
         }
 
+        const percentage = Math.round(
+          (videoRef.current.currentTime / videoRef.current.duration) * 100,
+        )
+
         ctx?.drawImage(videoRef.current, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+        setScrubberValue(percentage)
         setFrameMetadata(metadata)
 
         console.log("annotations", annotations.length) // TODO
       },
     )
   })
+
+  const updateVideoCurrentTime = (value: string) => {
+    const video = videoRef.current
+    if (!video) return
+    video.currentTime = (video.duration / 100) * parseInt(value, 10)
+  }
 
   return (
     <div>
@@ -50,9 +62,10 @@ export default function Video({observation, annotations}: Props) {
         width={CANVAS_WIDTH}
         height={CANVAS_HEIGHT}
       ></canvas>
-      <p>
+      <div className="flex">
         <button
           type="button"
+          className="w-[84px]"
           onClick={() => {
             if (videoRef.current?.paused) {
               void videoRef.current?.play()
@@ -63,7 +76,15 @@ export default function Video({observation, annotations}: Props) {
         >
           Play/Pause
         </button>
-      </p>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={scrubberValue}
+          onChange={(e) => updateVideoCurrentTime(e.target.value)}
+          className="ml-m w-[540px]"
+        />
+      </div>
       <pre>{JSON.stringify(frameMetadata, null, 2)}</pre>
     </div>
   )
