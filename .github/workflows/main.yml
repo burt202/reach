@@ -1,0 +1,31 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3.4.1
+        with:
+          node-version: 18
+
+      - name: Install
+        run: npm ci
+
+      - name: Run Lint
+        run: npm run lint
+
+      - name: Run Prettier Check
+        run: npm run prettier-check
+
+      - name: Build
+        run: npm run build
