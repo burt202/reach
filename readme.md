@@ -11,6 +11,8 @@ Also auto deploys on push to static github pages url at [https://burt202.github.
 
 NOTE: You need to change the site settings to allow 'Insecure content' for it to work as its HTTPS trying to connect to a non-secure web-socket
 
+In chrome: Navigate to [chrome://settings/content/siteDetails?site=https%3A%2F%2Fburt202.github.io](chrome://settings/content/siteDetails?site=https%3A%2F%2Fburt202.github.io) and scroll down to `Insecure content` and select `Allow`
+
 ### Thoughts
 
 Overall, I probably spent about 5-6 hours on the implementation here, but that doesnt include some research and test scripts that I did the night before (thats when i found the web socket endpoint wasnt working).
@@ -32,6 +34,7 @@ I enjoyed the task and it covered some areas I am less familiar with which I alw
 - look into alternatives to `requestVideoFrameCallback` as its not supported in Firefox, this includes seeing if there are any existing npm modules that have solved this problem rather than hand-rolling the code
 - make it responsive with slide-in hamburger menu
 - add some component tests and maybe introduce storybook - theres definitely a couple of components that could be tested with jest/react-testing-library like `Sidebar` and the individual chat messages (needs to be split out first). Introducing storybook too would enable components to be written and viewed outside of the context of the app which can be useful
+- error handling for failing to connect to the web socket
 
 ### References
 
