@@ -9,10 +9,6 @@ npm run dev
 
 Also auto deploys on push to static github pages url at [https://burt202.github.io/reach/](https://burt202.github.io/reach/)
 
-NOTE: You need to change the site settings to allow 'Insecure content' for it to work as its HTTPS trying to connect to a non-secure web-socket
-
-In chrome: Navigate to [chrome://settings/content/siteDetails?site=https%3A%2F%2Fburt202.github.io](chrome://settings/content/siteDetails?site=https%3A%2F%2Fburt202.github.io) and scroll down to `Insecure content` and select `Allow`
-
 ### Thoughts
 
 Overall, I probably spent about 5-6 hours on the implementation here, but that doesnt include some research and test scripts that I did the night before (thats when i found the web socket endpoint wasnt working).
