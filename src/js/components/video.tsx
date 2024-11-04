@@ -1,5 +1,5 @@
 import * as React from "react"
-import {useRef, useEffect, useState} from "react"
+import {useRef, useEffect, useState, useCallback} from "react"
 
 import {AnnotationsResponse, Observation} from "../types"
 
@@ -8,23 +8,8 @@ interface Props {
   annotations: AnnotationsResponse
 }
 
-const CANVAS_WIDTH = 640
-const CANVAS_HEIGHT = 360
-
-// This function logic is almost certainly wrong but being honest, i dont know how to relate the current
-// frame metadata to the annotation data properly. At the very least, I wanted to demonstate i could
-// render rects on the canvas but would need to ask more questions and have more context probably to
-// do a better job here
-
-// This implementation is based on presentedFrames which is ok for the first play of the video play
-// but then cant work beyond that (or if paused is used) as presentedFrames is an ever increasing
-// number and not related to the current position of the video
-
-// The logic in this function has been purposely separated out so its easily testable going forward as
-// and when the right implementation is found
-
 function getRectsForFrame(
-  metadata: VideoFrameCallbackMetadata,
+  percentage: number,
   annotations: AnnotationsResponse,
 ): Array<{
   x: number
@@ -32,17 +17,15 @@ function getRectsForFrame(
   width: number
   height: number
 }> {
-  const index = metadata.presentedFrames - 1
+  const index = Math.round((annotations.length / 100) * percentage)
 
   return annotations[index]
-    ? annotations[index].map((r) => {
-        const width = r[2]
-        const height = r[3]
+    ? annotations[index].map(([x, y, width, height]) => {
         return {
           width,
           height,
-          x: r[0] - width / 2,
-          y: r[1] - height / 2,
+          x,
+          y,
         }
       })
     : []
@@ -53,44 +36,50 @@ export default function Video({observation, annotations}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const [scrubberValue, setScrubberValue] = useState(0)
-  const [frameMetadata, setFrameMetadata] = useState({})
+  const [isPaused, setIsPaused] = useState(true)
+
+  const updateCanvas = useCallback(() => {
+    if (!videoRef.current || !canvasRef.current) {
+      return
+    }
+
+    const ctx = canvasRef.current.getContext("2d")
+    if (!ctx) return
+
+    canvasRef.current.width = videoRef.current.videoWidth
+    canvasRef.current.height = videoRef.current.videoHeight
+
+    const percentage =
+      (videoRef.current.currentTime / videoRef.current.duration) * 100
+
+    ctx.drawImage(
+      videoRef.current,
+      0,
+      0,
+      videoRef.current.videoWidth,
+      videoRef.current.videoHeight,
+    )
+
+    const rects = getRectsForFrame(percentage, annotations)
+
+    if (rects.length) {
+      ctx.strokeStyle = "#ffffff"
+      ctx.lineWidth = 3
+
+      rects.forEach((r) => {
+        ctx.beginPath()
+        ctx.rect(r.x, r.y, r.width, r.height)
+        ctx.stroke()
+      })
+    }
+
+    setScrubberValue(Math.round(percentage))
+    videoRef.current.requestVideoFrameCallback(updateCanvas)
+  }, [annotations])
 
   useEffect(() => {
-    const ctx = canvasRef.current?.getContext("2d")
-
-    // requestVideoFrameCallback is not currently supported in Firefox, maybe this is ok but if not
-    // a better cross browser solution would need to be found
-    videoRef.current?.requestVideoFrameCallback &&
-      videoRef.current?.requestVideoFrameCallback(
-        (now: number, metadata: VideoFrameCallbackMetadata) => {
-          if (!videoRef.current) {
-            return
-          }
-
-          const percentage = Math.round(
-            (videoRef.current.currentTime / videoRef.current.duration) * 100,
-          )
-
-          ctx?.drawImage(videoRef.current, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-
-          const rects = getRectsForFrame(metadata, annotations)
-
-          if (rects && ctx) {
-            ctx.strokeStyle = "#ffffff"
-            ctx.lineWidth = 3
-
-            rects.forEach((r) => {
-              ctx.beginPath()
-              ctx.rect(r.x, r.y, r.width, r.height)
-              ctx.stroke()
-            })
-          }
-
-          setScrubberValue(percentage)
-          setFrameMetadata(metadata)
-        },
-      )
-  })
+    videoRef.current?.requestVideoFrameCallback(updateCanvas)
+  }, [updateCanvas])
 
   const updateVideoCurrentTime = (value: string) => {
     const video = videoRef.current
@@ -103,20 +92,16 @@ export default function Video({observation, annotations}: Props) {
       <video
         src={observation.videoUrl}
         ref={videoRef}
-        width={CANVAS_WIDTH}
-        height={CANVAS_HEIGHT}
         controls
         className="hidden"
+        onPlay={() => setIsPaused(false)}
+        onPause={() => setIsPaused(true)}
       ></video>
-      <canvas
-        ref={canvasRef}
-        width={CANVAS_WIDTH}
-        height={CANVAS_HEIGHT}
-      ></canvas>
+      <canvas ref={canvasRef}></canvas>
       <div className="flex">
         <button
           type="button"
-          className="w-[84px]"
+          className="w-[80px]"
           onClick={() => {
             if (videoRef.current?.paused) {
               void videoRef.current?.play()
@@ -125,7 +110,7 @@ export default function Video({observation, annotations}: Props) {
             }
           }}
         >
-          Play/Pause
+          {isPaused ? "Play" : "Pause"}
         </button>
         <input
           type="range"
@@ -133,10 +118,9 @@ export default function Video({observation, annotations}: Props) {
           max="100"
           value={scrubberValue}
           onChange={(e) => updateVideoCurrentTime(e.target.value)}
-          className="ml-m w-[540px]"
+          className="ml-m flex-1"
         />
       </div>
-      <pre>{JSON.stringify(frameMetadata, null, 2)}</pre>
     </div>
   )
 }
